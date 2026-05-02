@@ -1,4 +1,13 @@
+import DOMPurify from 'dompurify'
 import { getImageUrl } from './image'
+
+const RICH_TEXT_SANITIZE_OPTIONS = {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'img', 'hr'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title'],
+    FORBID_ATTR: ['style', 'class', 'id'],
+    ALLOW_DATA_ATTR: false,
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|#|\/(?!\/))/i,
+}
 
 /**
  * 将 HTML 内容中的图片路径转换为显示用的绝对路径
@@ -9,9 +18,10 @@ export function processHtmlForDisplay(html: string): string {
 
     // 匹配 src="/uploads/..."，支持单引号和双引号
     // 使用非贪婪匹配 .*?
-    return html.replace(/src=["'](\/uploads\/.*?)["']/g, (_, path) => {
+    const rewritten = html.replace(/src=["'](\/uploads\/.*?)["']/g, (_, path) => {
         return `src="${getImageUrl(path)}"`
     })
+    return DOMPurify.sanitize(rewritten, RICH_TEXT_SANITIZE_OPTIONS)
 }
 
 /**
